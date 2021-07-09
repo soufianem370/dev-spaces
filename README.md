@@ -1,8 +1,12 @@
-# Azure Dev Spaces is retired as of May 15, 2021.
+### Azure Dev Spaces is retired as of May 15, 2021.
 
 ### commandes azure
+
+```
 docker run -it --rm -v ${PWD}:/work -w /work --entrypoint /bin/sh soufianem370/kube-tools-azure-helm-terraform:latest
-====
+```
+#### créer cluster AKS
+```
 az login
 az group create --name kops-test --location eastus
 {
@@ -16,40 +20,52 @@ az group create --name kops-test --location eastus
   "tags": null,
   "type": "Microsoft.Resources/resourceGroups"
 }
-==========
+
 az group list
 export RG=
 az aks create --resource-group $RG --name cluster01 --node-count 2  --generate-ssh-keys --enable-managed-identity
-
-==>créer un acr mode graphique
-pour tester votre acr:
-sur l'interface ACR ===>clé acces==> activer utilisateur administrateur
-docker login acrsoufiane2.azurecr.io
-docker tag mcr.microsoft.com/azure-cli:2.6.0 acrsoufiane2.azurecr.io/acrsoufiane2/azure-cli:latest
-docker push acrsoufiane2.azurecr.io/acrsoufiane2/azure-cli:latest
-
-==>arret/demarrer cluster
+```
+#### arret/demarrer cluster
 ```
 az aks stop --name cluster01 --resource-group kops-test
 az aks start --name cluster01 --resource-group kops-test
 az aks update --attach-acr acrsoufiane2 --name cluster01 --resource-group kops-test
 ```
+#### créer un acr mode graphique
+
+pour tester votre acr:
+
+sur l'interface ACR ===>clé acces==> activer utilisateur administrateur
+
+#### tester la connexion a votre ACR
+
+```
+docker login acrsoufiane2.azurecr.io
+docker tag mcr.microsoft.com/azure-cli:2.6.0 acrsoufiane2.azurecr.io/acrsoufiane2/azure-cli:latest
+docker push acrsoufiane2.azurecr.io/acrsoufiane2/azure-cli:latest
+```
+
 ===>importe image from an other registry docker
 ```
 az acr import  -n kopstest --source docker.io/soufianem370/kube-tools-azure-helm-terraform:latest --image kube-tools-az:v1
-=========builder avec les commandes az===
+```
+===>builder avec les commandes az
+
+```
 az acr build --image webfrontend:v1 --registry kopstest --file Dockerfile .
 ```
-==================
+
 https://github.com/sabbour/aks-gitops/blob/master/_docs/provision-infrastructure.md ===> aprobation entre aks et acr (pas encore tester)
+
+```
 az acr create --resource-group $RG --name "aksacrsoufiane" --sku "Standard" --location "eastus"
 export AKS_SP_ID=$(az aks show -g $RG -n cluster01 --query "servicePrincipalProfile.clientId" -o tsv)
 export ACR_RESOURCE_ID=$(az acr show -g $RG -n acrsoufiane2 --query "id" -o tsv)
 az role assignment create --assignee $AKS_SP_ID --scope $ACR_RESOURCE_ID --role contributor
-====================
 curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
 chmod +x ./kubectl && mv ./kubectl /usr/local/bin/kubectl
-
+```
+# example application nodejs build ==< push vers ACR ==> deploy vers AKS with helm
 
 ### lancer image docker d'envirennement azure
 
