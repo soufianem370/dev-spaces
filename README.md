@@ -1,5 +1,50 @@
 # Azure Dev Spaces is retired as of May 15, 2021.
 
+### lancer image docker d'envirennement azure
+```
+docker run -it --rm -v ${PWD}:/work -w /work --entrypoint /bin/sh soufianem370/kube-tools-azure-helm-terraform:latest
+```
+```
+git clone https://github.com/Azure/dev-spaces
+cd dev-spaces/samples/nodejs/getting-started/webfrontend
+```
+Create a Dockerfile
+-----------------------
+```
+FROM node:latest
+
+WORKDIR /webfrontend
+
+COPY package.json ./
+
+RUN npm install
+
+COPY . .
+
+EXPOSE 80
+CMD ["node","server.js"]
+```
+
+==> builder votre image docker via les commandes az acr 
+
+```
+az acr build --image webfrontend:v1 --registry kopstest --file Dockerfile .
+```
+nous avons une image stoquer sur ACR kopstest.azurecr.io/webfrontend:v1
+
+==>editer le fichier values de votre chart
+
+```
+image:
+  repository: kopstest.azurecr.io/webfrontend
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "v1"
+```
+```
+# kubectl create ns webfrontend
+# helm install webfrontend . -n webfrontend
+```
 Azure Dev Spaces is retired as of May 15, 2021. Developers should use [Bridge to Kubernetes](https://aka.ms/bridge-to-k8s-ga), a client developer tool.
 
 The purpose of Azure Dev Spaces was about easing developers into developing on Kubernetes. A significant tradeoff in the approach of Azure Dev Spaces was putting extra burden on developers to understand Docker and Kubernetes configurations as well as Kubernetes deployment concepts. Over time, it also became clear that the approach of Azure Dev Spaces did not effectively decrease the speed of inner loop development on Kubernetes. Bridge to Kubernetes effectively decreases the speed of inner loop development and avoids unnecessary burden on developers.
